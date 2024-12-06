@@ -1,80 +1,89 @@
-# README.md
-
-## Automating and Parallelizing Machine Learning Workflows with Snakemake
-
+**Automating and Parallelizing Machine Learning Workflows with Snakemake**
 Managing machine learning workflows involves multiple repetitive and interdependent steps, from data preprocessing to model evaluation and reporting. This project leverages Snakemake, a workflow management system, to streamline, automate, and parallelize these tasks. With Snakemake’s rule-based framework, the workflow is modular, reproducible, and efficient, automatically handling dependencies and rerunning only required tasks when changes occur.
 
-### **Purpose**
+**Purpose**
 The goals of this project are:
 
-- **Automation**: Streamlining the end-to-end machine learning pipeline, from preprocessing to reporting.
-- **Parallelization**: Utilizing Snakemake to optimize resource usage and execution time.
-- **Reproducibility**: Ensuring consistent results across different runs and environments.
-- **Flexibility**: Supporting tasks like hyperparameter tuning and model comparison in a scalable and extensible framework.
+Automation: Streamlining the end-to-end machine learning pipeline, from preprocessing to reporting.
+Parallelization: Utilizing Snakemake to optimize resource usage and execution time.
+Reproducibility: Ensuring consistent results across different runs and environments.
+Flexibility: Supporting tasks like hyperparameter tuning and model comparison in a scalable and extensible framework.
+Workflow Overview
+The workflow consists of the following steps:
 
-### **Methodology**
-The workflow is divided into the following steps:
+**Preprocessing:**
 
-1. **Preprocessing**:
-   - The dataset (`diseaseDk_PCR_Hanze_WP2.xlsx`) is cleaned, with missing values imputed, and categorical features encoded.
-   - The cleaned dataset is split into training and testing sets, saved as `train.csv` and `test.csv`.
+The dataset (diseaseDk_PCR_Hanze_WP2.xlsx) is cleaned, missing values are imputed, and categorical features are encoded.
+The dataset is split into training (train_data.csv) and testing (test_data.csv) datasets.
+Script Used: preprocessor.py.
 
-2. **Model Training**:
-   - Two models are trained:
-     - **Random Forest**: A robust, tree-based model for classification.
-     - **Ensemble Model**: Combines Random Forest and Gradient Boosting for improved predictions. 
-     The scripts for training are trainens.py and trainRF.py and the models were saved 
-     as "random_forest_model.pkl", "ensemble_model.pkl".
+**Model Training and Hyperparameter Tuning:**
 
-**3. Hyperparameter Tuning:**
-    - The train.csv was fitted on the models and was tuned by hyperparameters.
-    - The scripts for hyperparameter tuning  were tune_ensemble.py and tune_RandomForest.py and the outputs were  "RF_best_model.pkl" and "ensemble_best_model.pkl"
+###### Random Forest Model:
+Training: Generates the base Random Forest model (random_forest_model.pkl).
+Tuning: Optimizes hyperparameters and outputs the best model (RF_best_model.pkl) and results (RF_tuning_results.csv).
+Scripts Used: trainRF.py and tune_RandomForest.py.
 
-
-4. **Evaluation**:
-   - By using the best models created in the previous step. The evaluation was done on the test dataset. The script was "evaluation.py" 
-   - Metrics like accuracy, precision, recall, and F1-score are computed and saved as
-   "random_forest_results.txt" and "ensemble_results.txt".
-
-5. **Reporting**:
-   - the output of the previous step("random_forest_results.txt" and "ensemble_results.txt") were used and "final_report.csv" was created as output. which shows all the metrics for both two models.
-  and also generating several plot such as:
-
-  "hyperparameter_plot.png" : used "ensemble_tuning_results.csv" to create this plot for ensemble model.
-
-  "comparison_plot.png": which includes comparing the measured metric values for both models. It use generate_comparision_plot.py script as input. 
+###### Ensemble Model:
+Training: Generates the Ensemble model (ensemble_model.pkl).
+Tuning: Optimizes hyperparameters and outputs the best model (ensemble_best_model.pkl) and results (ensemble_tuning_results.csv).
+Scripts Used: trainens.py and tune_ensemble.py.
 
 
+**Model Evaluation:**
 
-### **Requirements**
+The best models are evaluated on the test dataset (test_data.csv).
+Metrics such as accuracy, precision, recall, and F1-score are saved as random_forest_results.txt and ensemble_results.txt.
+Script Used: evaluation.py.
 
+**Reporting:**
+
+A final report (final_report.csv) is generated comparing the performance of both models.
+Script Used: Create_report.py.
+
+**Visualization:**
+
+###### Hyperparameter Tuning Plot:
+A plot visualizing tuning results for the Ensemble model (hyperparameter_plot.png).
+Script Used: plot_hyperparameter_results.py.
+
+###### Comparison Plot:
+A plot comparing evaluation metrics of both models (comparison_plot.png).
+Script Used: generate_comparison_plot.py.
+
+**Snakemake Rules**
+The Snakemake workflow is structured as follows:
+
+preprocess_data: Prepares the dataset.
+tune_random_forest and tune_ensemble: Optimize hyperparameters for the respective models.
+evaluate_random_forest and evaluate_ensemble: Evaluate the performance of the tuned models.
+create_report: Consolidates evaluation metrics into a report.
+plot_hyperparameter_results and generate_comparison_plot: Creates visualizations for hyperparameter tuning and model comparison.
+
+
+**Requirements**
 The following dependencies are required:
-
-- **Environment Management**: Conda, mo_env
-- **Workflow Management**: Snakemake
-- **Python Libraries**:
-  - scikit-learn
-  - pandas
-  - numpy
-  - matplotlib
-  - pyyaml
-  - openpyxl
-  - python=3.9
-  - pandas
-  - numpy
-  - matplotlib
-  - scikit-learn
-  - openpyxl
-  - pyyaml
-  - snakemake
-```
+Environment Management: Conda
+Workflow Management: Snakemake
+Python Libraries:
+scikit-learn
+pandas
+numpy
+matplotlib
+pyyaml
+openpyxl
 
 
+**Execution**
+To execute the entire workflow:
+snakemake -s rules/main.smk --cores <4>
 
-### **Conclusion**
 
+To visualize the workflow DAG:
+snakemake -s rules/main.smk --dag | dot -Tpng > workflow_dag.png
+
+**Conclusion**
 This project demonstrates the effective use of Snakemake to automate and parallelize machine learning workflows. Key benefits include:
 
-- **Efficient Resource Utilization**: Parallel execution optimizes runtime.
-- **Reproducibility**: Modular design ensures consistent results.
-- **Scalability**: Workflow accommodates additional tasks and models.
+Efficient Resource Utilization: Parallel execution optimizes runtime.
+Reproducibility: Modular design ensures consistent results.
