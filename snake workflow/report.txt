@@ -1,77 +1,68 @@
 Workflow Design
-The workflow was structured into modular rules, each handling a specific task within the pipeline. The overall design and dependencies are visualized in the DAG (Directed Acyclic Graph):
-### **Workflow Design**
+Breakdown of the Workflow
 
-#### **Breakdown of the Workflow**
+preprocess_data:
+The starting point of the workflow.
+Preprocesses the raw dataset (diseaseDk_PCR_Hanze_WP2.xlsx) by imputing missing values, encoding categorical features, and splitting it into training (train_data.csv) and testing (test_data.csv) datasets.
+Outputs are used as inputs for all subsequent steps.
 
-- **preprocess_and_split**:
-  - This is the starting point, where the raw dataset is preprocessed and split into training and testing sets (`train.csv` and `test.csv`).
-  - It serves as the foundation for all subsequent steps.
+train_ensemble and tune_ensemble:
+train_ensemble: Trains the base ensemble model and generates ensemble_model.pkl.
 
-- **train_RF** and **train_ensemble**:
-  - After preprocessing, two independent rules train separate models:
-    - `train_RF`: Trains a Random Forest model.
-    - `train_ensemble`: Trains an ensemble model.
-  - These are independent of each other, which allows for parallelization.
+tune_ensemble: Optimizes the ensemble model hyperparameters, creating the best model (ensemble_best_model.pkl) and storing tuning results in ensemble_tuning_results.csv.
+tune_random_forest:
 
-- **evaluate_RF** and **evaluate_ensemble**:
-  - Once the models are trained, their performance is evaluated on the test set.
-  - Metrics like accuracy, precision, recall, or other scores are computed and stored.
-  - These steps are independent of each other.
+Optimizes the Random Forest model hyperparameters, creating the best model (RF_best_model.pkl) and storing tuning results in RF_tuning_results.csv.
+Depends on both the preprocessed training dataset (train_data.csv) and the previously generated base model (random_forest_model.pkl).
+evaluate_random_forest and evaluate_ensemble:
 
-- **tuned_RF** and **tuned_ensemble**:
-  - Hyperparameter tuning for both models is conducted after initial evaluation.
-  - This involves using techniques like GridSearchCV or RandomizedSearchCV to optimize the models.
+evaluate_random_forest: Evaluates the tuned Random Forest model on the test dataset, generating evaluation metrics (random_forest_results.txt).
+evaluate_ensemble: Evaluates the tuned ensemble model on the test dataset, generating evaluation metrics (ensemble_results.txt).
+plot_hyperparameter_results:
 
-- **generate_comparison_plot**:
-  - This step takes the results from the evaluations (`evaluate_RF`, `evaluate_ensemble`) and generates a comparison plot of the model performances.
+Creates a plot visualizing the hyperparameter tuning results for the ensemble model (hyperparameter_plot.png).
+Uses ensemble_tuning_results.csv as input.
 
-- **generate_report**:
-  - A final report is generated summarizing the results, metrics, and possibly hyperparameter tuning outcomes.
+generate_comparison_plot:
+Compares the evaluation metrics of the Random Forest and Ensemble models.
+Creates a comparison plot (comparison_plot.png) based on random_forest_results.txt and ensemble_results.txt.
 
-- **workflow_complete**:
-  - This is the final aggregation step that ensures all outputs are generated and combines the results from the entire pipeline. And the output was saved as workflow_dag.png.
+create_report:
+Aggregates evaluation metrics and generates a final summary report (final_report.csv).
 
-#### **Logic of the Workflow**
-
-- **Parallelization**: The workflow ensures independent steps (like training RF and Ensemble models) can be run in parallel, maximizing computational resource usage.
-- **Dependencies**: All rules are defined within `main.smk`, which serves as the central entry point for the workflow. Each step logically depends on the outputs of its predecessors (e.g., evaluation depends on training, and tuning depends on initial model training).g., evaluation depends on training, and tuning depends on initial model training.
-- **Final Outputs**: The `workflow_complete` step ensures that all required artifacts (e.g., metrics, models, plots, and reports) are generated before marking the workflow as complete.
-
-### **Execution**
-
-#### Run Specific Rules:
+all:
+Ensures all required artifacts (models, metrics, plots, and reports) are generated as part of the complete workflow.
 
 
-#### example Workflow Execution:
-```bash
-snakemake -s main.smk --cores all --use-conda
-```
+Logic of the Workflow
+Sequential Execution: The workflow begins with preprocess_data, which serves as the foundation for all other steps.
+Parallelization: Independent steps, such as training the ensemble model and tuning the Random Forest model, run in parallel, optimizing computational resource usage.
 
-#### Generate Workflow DAG:
-```bash
-snakemake -s rules/main.smk --dag > workflow_dag.dot
-```
-
+Dependencies:
+Model evaluation (evaluate_random_forest, evaluate_ensemble) depends on their respective tuned models.
+Visualization steps (plot_hyperparameter_results, generate_comparison_plot) depend on earlier evaluation and tuning steps.
+The final report generation (create_report) aggregates results from evaluations and visualizations.
 
 
-### **Results**
-Metric,Value
-Random Forest,0,Accuracy: 0.9432,
-Random Forest,1,Precision: 0.7479,
-Random Forest,2,Recall: 0.4064,
-Random Forest,3,F1-Score: 0.5266,
-Random Forest,4,Mean Squared Error: 0.0438,
-Random Forest,5,R2 Score: 0.3892,
-Ensemble,0,Accuracy: 0.9389,
-Ensemble,1,Precision: 0.7327,
-Ensemble,2,Recall: 0.3379,
-Ensemble,3,F1-Score: 0.4625,
-Ensemble,4,Mean Squared Error: 0.0481,
-Ensemble,5,R2 Score: 0.3292,
+Results
+Metric Outputs:
+Metric	Random Forest	Ensemble Model
+Accuracy	0.9432	0.9389
+Precision	0.7479	0.7327
+Recall	0.4064	0.3379
+F1-Score	0.5266	0.4625
+Mean Squared Error	0.0438	0.0481
+R2 Score	0.3892	0.3292
 
 
-#### **Key Outputs:**
-- comparison_plot.png , hyperparameter_plot.png, workfolw_dag.png
--random_forest_results.txt, random_forest_model.pk1. ensembke_results.txt, ensemble_model.pk1, ensemble_best_model.pkl
-- test_dat.csv, train_data.csv , ensemble_tuning_results.csv,final_report.csv
+Key Outputs:
+Files:
+train_data.csv, test_data.csv: Preprocessed data files.
+random_forest_results.txt, ensemble_results.txt: Evaluation metrics for models.
+random_forest_model.pkl, RF_best_model.pkl, ensemble_model.pkl, ensemble_best_model.pkl: Model files.
+RF_tuning_results.csv, ensemble_tuning_results.csv: Hyperparameter tuning results.
+final_report.csv: Aggregated performance report.
+Plots:
+hyperparameter_plot.png: Visualizes hyperparameter tuning for the ensemble model.
+comparison_plot.png: Compares evaluation metrics of both models.
+workflow_dag.png: Visual representation of the workflow.
