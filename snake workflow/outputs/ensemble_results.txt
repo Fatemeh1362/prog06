@@ -1,0 +1,6 @@
+Accuracy: 0.9389
+Precision: 0.7327
+Recall: 0.3379
+F1-Score: 0.4625
+Mean Squared Error: 0.0481
+R2 Score: 0.3292
