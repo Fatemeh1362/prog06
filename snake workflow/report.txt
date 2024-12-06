@@ -1,0 +1,77 @@
+Workflow Design
+The workflow was structured into modular rules, each handling a specific task within the pipeline. The overall design and dependencies are visualized in the DAG (Directed Acyclic Graph):
+### **Workflow Design**
+
+#### **Breakdown of the Workflow**
+
+- **preprocess_and_split**:
+  - This is the starting point, where the raw dataset is preprocessed and split into training and testing sets (`train.csv` and `test.csv`).
+  - It serves as the foundation for all subsequent steps.
+
+- **train_RF** and **train_ensemble**:
+  - After preprocessing, two independent rules train separate models:
+    - `train_RF`: Trains a Random Forest model.
+    - `train_ensemble`: Trains an ensemble model.
+  - These are independent of each other, which allows for parallelization.
+
+- **evaluate_RF** and **evaluate_ensemble**:
+  - Once the models are trained, their performance is evaluated on the test set.
+  - Metrics like accuracy, precision, recall, or other scores are computed and stored.
+  - These steps are independent of each other.
+
+- **tuned_RF** and **tuned_ensemble**:
+  - Hyperparameter tuning for both models is conducted after initial evaluation.
+  - This involves using techniques like GridSearchCV or RandomizedSearchCV to optimize the models.
+
+- **generate_comparison_plot**:
+  - This step takes the results from the evaluations (`evaluate_RF`, `evaluate_ensemble`) and generates a comparison plot of the model performances.
+
+- **generate_report**:
+  - A final report is generated summarizing the results, metrics, and possibly hyperparameter tuning outcomes.
+
+- **workflow_complete**:
+  - This is the final aggregation step that ensures all outputs are generated and combines the results from the entire pipeline. And the output was saved as workflow_dag.png.
+
+#### **Logic of the Workflow**
+
+- **Parallelization**: The workflow ensures independent steps (like training RF and Ensemble models) can be run in parallel, maximizing computational resource usage.
+- **Dependencies**: All rules are defined within `main.smk`, which serves as the central entry point for the workflow. Each step logically depends on the outputs of its predecessors (e.g., evaluation depends on training, and tuning depends on initial model training).g., evaluation depends on training, and tuning depends on initial model training.
+- **Final Outputs**: The `workflow_complete` step ensures that all required artifacts (e.g., metrics, models, plots, and reports) are generated before marking the workflow as complete.
+
+### **Execution**
+
+#### Run Specific Rules:
+
+
+#### example Workflow Execution:
+```bash
+snakemake -s main.smk --cores all --use-conda
+```
+
+#### Generate Workflow DAG:
+```bash
+snakemake -s rules/main.smk --dag > workflow_dag.dot
+```
+
+
+
+### **Results**
+Metric,Value
+Random Forest,0,Accuracy: 0.9432,
+Random Forest,1,Precision: 0.7479,
+Random Forest,2,Recall: 0.4064,
+Random Forest,3,F1-Score: 0.5266,
+Random Forest,4,Mean Squared Error: 0.0438,
+Random Forest,5,R2 Score: 0.3892,
+Ensemble,0,Accuracy: 0.9389,
+Ensemble,1,Precision: 0.7327,
+Ensemble,2,Recall: 0.3379,
+Ensemble,3,F1-Score: 0.4625,
+Ensemble,4,Mean Squared Error: 0.0481,
+Ensemble,5,R2 Score: 0.3292,
+
+
+#### **Key Outputs:**
+- comparison_plot.png , hyperparameter_plot.png, workfolw_dag.png
+-random_forest_results.txt, random_forest_model.pk1. ensembke_results.txt, ensemble_model.pk1, ensemble_best_model.pkl
+- test_dat.csv, train_data.csv , ensemble_tuning_results.csv,final_report.csv
