@@ -1,0 +1,13 @@
+,,Metric,Value
+Random Forest,0,Accuracy: 0.9432,
+Random Forest,1,Precision: 0.7479,
+Random Forest,2,Recall: 0.4064,
+Random Forest,3,F1-Score: 0.5266,
+Random Forest,4,Mean Squared Error: 0.0438,
+Random Forest,5,R2 Score: 0.3892,
+Ensemble,0,Accuracy: 0.9389,
+Ensemble,1,Precision: 0.7327,
+Ensemble,2,Recall: 0.3379,
+Ensemble,3,F1-Score: 0.4625,
+Ensemble,4,Mean Squared Error: 0.0481,
+Ensemble,5,R2 Score: 0.3292,
